@@ -5,14 +5,14 @@ import 'dart:ui';
 import 'package:flame/sprite.dart';
 import 'package:flappy_bird/flappy_game.dart';
 
-class GameOver {
+class GameOverScreen{
 
   Rect messageRect;
   Sprite messageSprite;
 
   final FlappyGame game;
 
-  GameOver({this.game}) {
+  GameOverScreen({this.game}) {
     messageSprite = Sprite("message.png");
     messageRect = Rect.fromCenter(
       center: Offset(game.screenSize.width/2, game.screenSize.height/2), 

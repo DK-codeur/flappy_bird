@@ -8,6 +8,7 @@ import 'package:flame/time.dart';
 import 'package:flappy_bird/composants/background.dart';
 import 'package:flappy_bird/composants/base.dart';
 import 'package:flappy_bird/composants/bird.dart';
+import 'package:flappy_bird/composants/game_over_screen.dart';
 import 'package:flappy_bird/composants/pipes.dart';
 
 class FlappyGame extends Game with TapDetector {
@@ -19,6 +20,9 @@ class FlappyGame extends Game with TapDetector {
   List<Pipes> pipesList = [];
   Timer timer;
   Bird bird;
+  GameOverScreen gameOver;
+
+  bool isPlaying = false;
 
   FlappyGame() {
     initialize();
@@ -38,6 +42,8 @@ class FlappyGame extends Game with TapDetector {
     bird = Bird(game: this);
 
     timer.start();
+
+    gameOver = GameOverScreen(game: this);
   }
 
 
@@ -46,25 +52,51 @@ class FlappyGame extends Game with TapDetector {
   void render(Canvas canvas) {
     background.render(canvas);
 
-    // pipes.render(canvas);
-    pipesList.forEach((Pipes pipes) { 
-      pipes.render(canvas);
-    });
+    if (isPlaying == true) {
+      // pipes.render(canvas);
+      pipesList.forEach((Pipes pipes) { 
+        pipes.render(canvas);
+      });
+
+       //afficher le bird
+        bird.render(canvas);
+
+    } else {
+      gameOver.render(canvas);
+    }
+
+    
 
     // base.render(canvas);
     baseList.forEach((Base base) { 
       base.render(canvas);
     });
 
-    //afficher le bird
-    bird.render(canvas);
+   
 
   }
 
   //** update
   @override
   void update(double t) {
-    timer.update(t);
+
+    if (isPlaying == true) {
+      timer.update(t);
+
+      //deplacement des tubes
+      // pipes.update(t);
+      pipesList.forEach((Pipes pipes) { 
+        pipes.update(t);
+      });
+
+      //supprime les pipe non visible
+      pipesList.removeWhere((Pipes pipes) => pipes.isVisible == false);
+
+      bird.update(t);
+
+      gameOverFunct();
+
+    } 
 
     // base.update(t);
     baseList.forEach((Base base) {
@@ -77,18 +109,8 @@ class FlappyGame extends Game with TapDetector {
       createBase();
     }
 
-    //deplacement des tubes
-    // pipes.update(t);
-    pipesList.forEach((Pipes pipes) { 
-      pipes.update(t);
-    });
+   
 
-    //supprime les pipe non visible
-    pipesList.removeWhere((Pipes pipes) => pipes.isVisible == false);
-
-    bird.update(t);
-
-    gameOver();
   }
 
   @override
@@ -111,30 +133,41 @@ class FlappyGame extends Game with TapDetector {
   //** ontap
   @override
   void onTap() {
-    print("#### onTap");
     bird.onTap();
-    super.onTap();
+    if (isPlaying == true) {
+      super.onTap();
+    } else {
+      pipesList.clear();
+      isPlaying = true;
+      timer.start();
+    }
   }
 
-  void gameOver() {
+  void gameOverFunct() {
     //check si le bird a toucher les tubes
     pipesList.forEach((Pipes pipes) { 
       if (pipes.hasCollided(bird.birdRect)) {
-        print("##### Game over");
+        reset();
       }
     });
 
     //collisio avec le sol
     baseList.forEach((Base base) {
       if (base.hasCollided(bird.birdRect)) {
-        print("##### a toucher le sol");
+        reset();
       }
     });
 
     //collision avec le haut de l'ecran
     if (bird.birdRect.top <= 0) {
-      print("##### a toucher le haut");
+      reset();
     }
+  }
+
+  void reset() {
+    isPlaying = false;
+    timer.stop();
+    bird = Bird(game: this);
   }
 
 
