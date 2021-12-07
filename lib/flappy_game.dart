@@ -3,12 +3,14 @@ import 'dart:ui';
 
 import 'package:flame/flame.dart';
 import 'package:flame/game/game.dart';
+import 'package:flame/gestures.dart';
 import 'package:flame/time.dart';
 import 'package:flappy_bird/composants/background.dart';
 import 'package:flappy_bird/composants/base.dart';
+import 'package:flappy_bird/composants/bird.dart';
 import 'package:flappy_bird/composants/pipes.dart';
 
-class FlappyGame extends Game {
+class FlappyGame extends Game with TapDetector {
   Size screenSize;
   Background background;
   // Base base;
@@ -16,6 +18,7 @@ class FlappyGame extends Game {
   // Pipes pipes;
   List<Pipes> pipesList = [];
   Timer timer;
+  Bird bird;
 
   FlappyGame() {
     initialize();
@@ -32,9 +35,13 @@ class FlappyGame extends Game {
 
     });
 
+    bird = Bird(game: this);
+
     timer.start();
   }
 
+
+  //** render
   @override 
   void render(Canvas canvas) {
     background.render(canvas);
@@ -49,8 +56,12 @@ class FlappyGame extends Game {
       base.render(canvas);
     });
 
+    //afficher le bird
+    bird.render(canvas);
+
   }
 
+  //** update
   @override
   void update(double t) {
     timer.update(t);
@@ -71,6 +82,13 @@ class FlappyGame extends Game {
     pipesList.forEach((Pipes pipes) { 
       pipes.update(t);
     });
+
+    //supprime les pipe non visible
+    pipesList.removeWhere((Pipes pipes) => pipes.isVisible == false);
+
+    bird.update(t);
+
+    gameOver();
   }
 
   @override
@@ -88,6 +106,35 @@ class FlappyGame extends Game {
 
     baseList.add(firstBase);
     baseList.add(secondBase);
+  }
+
+  //** ontap
+  @override
+  void onTap() {
+    print("#### onTap");
+    bird.onTap();
+    super.onTap();
+  }
+
+  void gameOver() {
+    //check si le bird a toucher les tubes
+    pipesList.forEach((Pipes pipes) { 
+      if (pipes.hasCollided(bird.birdRect)) {
+        print("##### Game over");
+      }
+    });
+
+    //collisio avec le sol
+    baseList.forEach((Base base) {
+      if (base.hasCollided(bird.birdRect)) {
+        print("##### a toucher le sol");
+      }
+    });
+
+    //collision avec le haut de l'ecran
+    if (bird.birdRect.top <= 0) {
+      print("##### a toucher le haut");
+    }
   }
 
 

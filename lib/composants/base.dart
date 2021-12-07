@@ -35,4 +35,8 @@ class Base {
   void render(Canvas canvas) {
     baseSprite.renderRect(canvas, baseRect);
   }
+
+  bool hasCollided(Rect myRect) {
+    return baseRect.overlaps(myRect);
+  }
 }
