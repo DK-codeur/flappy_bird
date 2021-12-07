@@ -1,15 +1,19 @@
 
 import 'dart:ui';
 
+import 'package:flame/anchor.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game/game.dart';
 import 'package:flame/gestures.dart';
+import 'package:flame/position.dart';
+import 'package:flame/text_config.dart';
 import 'package:flame/time.dart';
 import 'package:flappy_bird/composants/background.dart';
 import 'package:flappy_bird/composants/base.dart';
 import 'package:flappy_bird/composants/bird.dart';
 import 'package:flappy_bird/composants/game_over_screen.dart';
 import 'package:flappy_bird/composants/pipes.dart';
+import 'package:flutter/material.dart';
 
 class FlappyGame extends Game with TapDetector {
   Size screenSize;
@@ -23,6 +27,9 @@ class FlappyGame extends Game with TapDetector {
   GameOverScreen gameOver;
 
   bool isPlaying = false;
+
+  int score = 0;
+  TextConfig scoreText;
 
   FlappyGame() {
     initialize();
@@ -44,6 +51,13 @@ class FlappyGame extends Game with TapDetector {
     timer.start();
 
     gameOver = GameOverScreen(game: this);
+
+    //textConfig
+    scoreText = TextConfig(
+      fontSize: 45, 
+      fontFamily: "flappyFont",
+      color: Colors.white
+    );
   }
 
 
@@ -60,6 +74,14 @@ class FlappyGame extends Game with TapDetector {
 
        //afficher le bird
         bird.render(canvas);
+
+        //affiche le score
+        scoreText.render(
+          canvas, 
+          score.toString(), 
+          Position(screenSize.width/2, screenSize.height/8,),
+          anchor: Anchor.center
+        );
 
     } else {
       gameOver.render(canvas);
@@ -93,6 +115,8 @@ class FlappyGame extends Game with TapDetector {
       pipesList.removeWhere((Pipes pipes) => pipes.isVisible == false);
 
       bird.update(t);
+
+      updateScore();
 
       gameOverFunct();
 
@@ -147,6 +171,7 @@ class FlappyGame extends Game with TapDetector {
     //check si le bird a toucher les tubes
     pipesList.forEach((Pipes pipes) { 
       if (pipes.hasCollided(bird.birdRect)) {
+        Flame.audio.play("hit.wav");
         reset();
       }
     });
@@ -154,12 +179,14 @@ class FlappyGame extends Game with TapDetector {
     //collisio avec le sol
     baseList.forEach((Base base) {
       if (base.hasCollided(bird.birdRect)) {
+        Flame.audio.play("hit.wav");
         reset();
       }
     });
 
     //collision avec le haut de l'ecran
     if (bird.birdRect.top <= 0) {
+      Flame.audio.play("hit.wav");
       reset();
     }
   }
@@ -168,6 +195,21 @@ class FlappyGame extends Game with TapDetector {
     isPlaying = false;
     timer.stop();
     bird = Bird(game: this);
+    score = 0;
+  }
+
+  void updateScore() {
+    pipesList.forEach((Pipes pipes) { 
+      if (pipes.canUpdateScrore == true) {
+        
+        if (bird.birdRect.right >= pipes.topPipeBodyRect.left + pipes.topPipeBodyRect.width/2) {
+          score++;
+          Flame.audio.play("point.wav");
+          pipes.canUpdateScrore = false;
+          
+        }
+      }
+    });
   }
 
 

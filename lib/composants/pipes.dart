@@ -26,6 +26,7 @@ class Pipes {
 
   List<double> heights;
   bool isVisible = true;
+  bool canUpdateScrore = true;
 
   final FlappyGame game;
 

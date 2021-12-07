@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame/time.dart';
 import 'package:flappy_bird/flappy_game.dart';
@@ -78,5 +79,6 @@ class Bird {
 
   void onTap() {
     isJumping = true;
+    Flame.audio.play("wing.wav");
   }
 }
