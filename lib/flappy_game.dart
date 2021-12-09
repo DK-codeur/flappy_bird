@@ -14,6 +14,7 @@ import 'package:flappy_bird/composants/bird.dart';
 import 'package:flappy_bird/composants/game_over_screen.dart';
 import 'package:flappy_bird/composants/pipes.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FlappyGame extends Game with TapDetector {
   Size screenSize;
@@ -30,6 +31,9 @@ class FlappyGame extends Game with TapDetector {
 
   int score = 0;
   TextConfig scoreText;
+  int highScore = 0;
+
+  SharedPreferences prefs;
 
   FlappyGame() {
     initialize();
@@ -50,7 +54,7 @@ class FlappyGame extends Game with TapDetector {
 
     timer.start();
 
-    gameOver = GameOverScreen(game: this);
+    gameOver = GameOverScreen(game: this, score: score);
 
     //textConfig
     scoreText = TextConfig(
@@ -195,6 +199,7 @@ class FlappyGame extends Game with TapDetector {
     isPlaying = false;
     timer.stop();
     bird = Bird(game: this);
+    gameOver = GameOverScreen(game: this, score: score);
     score = 0;
   }
 
@@ -206,10 +211,21 @@ class FlappyGame extends Game with TapDetector {
           score++;
           Flame.audio.play("point.wav");
           pipes.canUpdateScrore = false;
+
+          //update le meilleur score
+          if(score > highScore) {
+            saveHightScore();
+          }
           
         }
       }
     });
+  }
+
+  void saveHightScore() async {
+    highScore = score;
+    prefs = await SharedPreferences.getInstance();
+    prefs.setInt("hightScore", highScore);
   }
 
 
